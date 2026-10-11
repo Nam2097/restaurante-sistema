@@ -15,11 +15,11 @@ public class Ventana extends JFrame{
     private JPanel superiorMesero;
     private JPanel centralMesero;
     private JPanel inferiorMesero;
+
+    private JComboBox<String> meseroBtn;
+    private JComboBox<String> mesaBtn;
+
     private JPanel listaPedidos;
-
-    private JButton meseroBtn;
-    private JButton mesaBtn;
-
     private JLabel totalLabel;
     private JButton agregarPlato;
     private ActionListener quitarPedidoListener;
@@ -66,8 +66,8 @@ public class Ventana extends JFrame{
 
         //Panel superior
 
-        meseroBtn = new JButton("Mesero x");
-        mesaBtn = new JButton("1");
+        meseroBtn = new JComboBox<>(new String[]{"Mesero x"});
+        mesaBtn = new JComboBox<>(new String[]{"1"});
 
         JPanel mesa = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         JPanel mesero = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
@@ -126,22 +126,41 @@ public class Ventana extends JFrame{
         panelCocina.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); //Margenes
     }
 
-    public void actualizarMesero(String nombre) {
-        meseroBtn.setText(nombre);
+
+    //---------------------------------PARA CONTROLADOR----------------------------------
+
+    public void cargarMeseros(String[] nombres) { //Poner las opciones de meseros
+        meseroBtn.removeAllItems();
+        for (String nombre : nombres) {
+            meseroBtn.addItem(nombre);
+        }
     }
 
-    public void actualizarMesa(int numero) {
-        mesaBtn.setText(String.valueOf(numero));
+    public void cargarMesas(int cantidad) { //Poner las opciones de mesas
+        mesaBtn.removeAllItems();
+        for (int i=1; i<=cantidad; i++) {
+            mesaBtn.addItem(String.valueOf(i));
+        }
+    }
+
+    public String obtenerMeseroSeleccionado() {
+        return (String) meseroBtn.getSelectedItem();
+    }
+
+    public String obtenerMesaSeleccionada() {
+        return (String) mesaBtn.getSelectedItem();
     }
 
     public void actualizarTotal(String valor) {
         totalLabel.setText("Total: " + valor);
     }
 
-    public void agregarPedido(String nombre, String precio) {
+    public void agregarPedido(String nombre, String precio) { //nombre es el nombre del plato
         JPanel filaPedido = new JPanel(new GridLayout(1, 3, 5, 5));
         filaPedido.add(new JLabel(nombre));
         filaPedido.add(new JLabel(precio));
+
+        filaPedido.setMaximumSize(new Dimension(Integer.MAX_VALUE, filaPedido.getPreferredSize().height+20));
 
         JButton quitar = new JButton("Quitar");
         quitar.addActionListener((ActionEvent evento) -> {
@@ -153,14 +172,17 @@ public class Ventana extends JFrame{
                         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, String.valueOf(posicion)));
             }
         });
-        filaPedido.add(quitar);
+        JPanel quitarPanel =new JPanel();
+        quitarPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); //Margenes
+        quitarPanel.add(quitar);
+        filaPedido.add(quitarPanel);
 
         listaPedidos.add(filaPedido);
         listaPedidos.revalidate();
         listaPedidos.repaint();
     }
 
-    public void quitarPedido(int posicion) {
+    private void quitarPedido(int posicion) { //Se usa únicamente en esta clase, ntp
         if (posicion >= 0 && posicion < listaPedidos.getComponentCount()) {
             listaPedidos.remove(posicion);
             listaPedidos.revalidate();
@@ -168,11 +190,13 @@ public class Ventana extends JFrame{
         }
     }
 
-    public void limpiarPedidos() {
+    public void limpiarPedidos() { //Borra todos los platos de la pantalla
         listaPedidos.removeAll();
         listaPedidos.revalidate();
         listaPedidos.repaint();
     }
+
+    //Para que se definan funciones al presionar el boton
 
     public void alGenerarFactura(ActionListener listener) {
         generarFactura.addActionListener(listener);
@@ -188,6 +212,14 @@ public class Ventana extends JFrame{
 
     public void alAgregarPlato(ActionListener listener) {
         agregarPlato.addActionListener(listener);
+    }
+
+    public void alSeleccionarMesero(ActionListener listener) {
+        meseroBtn.addActionListener(listener);
+    }
+
+    public void alSeleccionarMesa(ActionListener listener) {
+        mesaBtn.addActionListener(listener);
     }
 
     public void alQuitarPedido(ActionListener listener) {
