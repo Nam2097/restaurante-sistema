@@ -21,13 +21,17 @@ public class Ventana extends JFrame{
 
     private JPanel listaPedidos;
     private JLabel totalLabel;
+    private JComboBox<String> selectorPlato;
     private JButton agregarPlato;
     private ActionListener quitarPedidoListener;
 
     private JButton generarFactura;
     private JButton revertirFactura;
     private JButton reiniciarMesa;
-    private JButton siguientePedido;
+
+    //Atributos panel cocina
+    private JPanel listaPedidosCocina;
+    private ActionListener pedidoCompletadoListener;
 
 
     public Ventana(){
@@ -93,9 +97,11 @@ public class Ventana extends JFrame{
         listaPedidos.setLayout(new BoxLayout(listaPedidos, BoxLayout.Y_AXIS));
         JScrollPane scroll = new JScrollPane(listaPedidos);
 
+        selectorPlato = new JComboBox<>(new String[]{"Escoja el plato"});
         agregarPlato = new JButton("+");
         totalLabel = new JLabel("Total: ");
         JPanel resumen = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        resumen.add(selectorPlato);
         resumen.add(agregarPlato);
         resumen.add(totalLabel);
 
@@ -120,9 +126,18 @@ public class Ventana extends JFrame{
 
     private void iniciarPanelCocina(){
         panelCocina= new JPanel(new BorderLayout());
-        siguientePedido = new JButton("Siguiente pedido");
-        panelCocina.add(new JLabel("Módulo de la cocina"), BorderLayout.NORTH);
-        panelCocina.add(siguientePedido, BorderLayout.SOUTH);
+
+        JPanel encabezadoPedidos = new JPanel(new GridLayout(1, 3, 5, 5));
+        encabezadoPedidos.add(new JLabel("Plato"));
+        encabezadoPedidos.add(new JLabel("Mesa"));
+        encabezadoPedidos.add(new JLabel(" "));
+        encabezadoPedidos.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+
+        listaPedidosCocina = new JPanel();
+        listaPedidosCocina.setLayout(new BoxLayout(listaPedidosCocina, BoxLayout.Y_AXIS));
+
+        panelCocina.add(encabezadoPedidos, BorderLayout.NORTH);
+        panelCocina.add(new JScrollPane(listaPedidosCocina), BorderLayout.CENTER);
         panelCocina.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); //Margenes
     }
 
@@ -143,6 +158,14 @@ public class Ventana extends JFrame{
         }
     }
 
+    public void cargarPlatos(String[] nombres) { //Poner las opciones de platos
+        selectorPlato.removeAllItems();
+        selectorPlato.addItem("Escoja el plato");
+        for (String nombre : nombres) {
+            selectorPlato.addItem(nombre);
+        }
+    }
+
     public String obtenerMeseroSeleccionado() {
         return (String) meseroBtn.getSelectedItem();
     }
@@ -151,13 +174,17 @@ public class Ventana extends JFrame{
         return (String) mesaBtn.getSelectedItem();
     }
 
+    public String obtenerPlatoSeleccionado() {
+        return (String) selectorPlato.getSelectedItem();
+    }
+
     public void actualizarTotal(String valor) {
         totalLabel.setText("Total: " + valor);
     }
 
-    public void agregarPedido(String nombre, String precio) { //nombre es el nombre del plato
+    public void agregarPedidoMesero(String plato, String precio) { 
         JPanel filaPedido = new JPanel(new GridLayout(1, 3, 5, 5));
-        filaPedido.add(new JLabel(nombre));
+        filaPedido.add(new JLabel(plato));
         filaPedido.add(new JLabel(precio));
 
         filaPedido.setMaximumSize(new Dimension(Integer.MAX_VALUE, filaPedido.getPreferredSize().height+20));
@@ -165,7 +192,7 @@ public class Ventana extends JFrame{
         JButton quitar = new JButton("Quitar");
         quitar.addActionListener((ActionEvent evento) -> {
             int posicion = listaPedidos.getComponentZOrder(filaPedido);
-            quitarPedido(posicion);
+            quitarPedidoMesero(posicion);
 
             if (quitarPedidoListener != null) {
                 quitarPedidoListener.actionPerformed(
@@ -182,7 +209,7 @@ public class Ventana extends JFrame{
         listaPedidos.repaint();
     }
 
-    private void quitarPedido(int posicion) { //Se usa únicamente en esta clase, ntp
+    private void quitarPedidoMesero(int posicion) { //Se usa únicamente en esta clase, ntp
         if (posicion >= 0 && posicion < listaPedidos.getComponentCount()) {
             listaPedidos.remove(posicion);
             listaPedidos.revalidate();
@@ -190,13 +217,46 @@ public class Ventana extends JFrame{
         }
     }
 
-    public void limpiarPedidos() { //Borra todos los platos de la pantalla
+    public void limpiarPedidosMesero() { //Borra todos los platos de la pantalla
         listaPedidos.removeAll();
         listaPedidos.revalidate();
         listaPedidos.repaint();
     }
 
-    //Para que se definan funciones al presionar el boton
+    public void agregarPedidoCocina(String plato, String mesa) { 
+        JPanel filaPedido = new JPanel(new GridLayout(1, 3, 5, 5));
+        filaPedido.add(new JLabel(plato));
+        filaPedido.add(new JLabel(mesa));
+
+        JButton completado = new JButton("Completado");
+        completado.addActionListener((ActionEvent evento) -> {
+            listaPedidosCocina.remove(filaPedido);
+            listaPedidosCocina.revalidate();
+            listaPedidosCocina.repaint();
+
+            if (pedidoCompletadoListener != null) {
+                pedidoCompletadoListener.actionPerformed(
+                        new ActionEvent(this, ActionEvent.ACTION_PERFORMED, plato + ";" + mesa));
+            }
+        });
+        JPanel completadoPanel =new JPanel();
+        completadoPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); //Margenes
+        completadoPanel.add(completado);
+        filaPedido.add(completadoPanel);
+        filaPedido.setMaximumSize(new Dimension(Integer.MAX_VALUE, filaPedido.getPreferredSize().height + 20));
+        listaPedidosCocina.add(filaPedido);
+        listaPedidosCocina.revalidate();
+        listaPedidosCocina.repaint();
+    }
+
+    public void limpiarPedidosCocina() {
+        listaPedidosCocina.removeAll();
+        listaPedidosCocina.revalidate();
+        listaPedidosCocina.repaint();
+    }
+
+    //Para que se definan funciones al presionar el boton:
+    //(O seleccionar de un desplegable)
 
     public void alGenerarFactura(ActionListener listener) {
         generarFactura.addActionListener(listener);
@@ -210,8 +270,12 @@ public class Ventana extends JFrame{
         reiniciarMesa.addActionListener(listener);
     }
 
-    public void alAgregarPlato(ActionListener listener) {
+    public void alAgregarPlato(ActionListener listener) { //este es el boton "+"
         agregarPlato.addActionListener(listener);
+    }
+
+    public void alSeleccionarPlato(ActionListener listener) {
+        selectorPlato.addActionListener(listener);
     }
 
     public void alSeleccionarMesero(ActionListener listener) {
@@ -226,8 +290,8 @@ public class Ventana extends JFrame{
         quitarPedidoListener = listener;
     }
 
-    public void alSiguientePedido(ActionListener listener) {
-        siguientePedido.addActionListener(listener);
+    public void alCompletarPedido(ActionListener listener) {
+        pedidoCompletadoListener = listener;
     }
 
 
