@@ -55,8 +55,7 @@ public class Ventana extends JFrame{
         panelMesero= new JPanel(new BorderLayout());
 
         superiorMesero = new JPanel(new GridLayout(1, 2, 5, 5));
-        centralMesero = new JPanel();
-        centralMesero.setLayout(new BoxLayout(centralMesero, BoxLayout.Y_AXIS));
+        centralMesero = new JPanel(new BorderLayout());
         inferiorMesero = new JPanel(new GridLayout(1, 3, 5, 5));
         
 
@@ -88,6 +87,7 @@ public class Ventana extends JFrame{
         encabezadoPedidos.add(new JLabel("Plato"));
         encabezadoPedidos.add(new JLabel("Precio"));
         encabezadoPedidos.add(new JLabel(" "));
+        encabezadoPedidos.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
         listaPedidos = new JPanel();
         listaPedidos.setLayout(new BoxLayout(listaPedidos, BoxLayout.Y_AXIS));
@@ -99,9 +99,9 @@ public class Ventana extends JFrame{
         resumen.add(agregarPlato);
         resumen.add(totalLabel);
 
-        centralMesero.add(encabezadoPedidos);
-        centralMesero.add(scroll);
-        centralMesero.add(resumen);
+        centralMesero.add(encabezadoPedidos, BorderLayout.NORTH);
+        centralMesero.add(scroll, BorderLayout.CENTER);
+        centralMesero.add(resumen, BorderLayout.SOUTH);
         
         //Panel inferior
         generarFactura = new JButton("Generar Factura");
@@ -137,7 +137,7 @@ public class Ventana extends JFrame{
     public void actualizarTotal(String valor) {
         totalLabel.setText("Total: " + valor);
     }
-    
+
     public void agregarPedido(String nombre, String precio) {
         JPanel filaPedido = new JPanel(new GridLayout(1, 3, 5, 5));
         filaPedido.add(new JLabel(nombre));
