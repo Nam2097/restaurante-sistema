@@ -165,7 +165,7 @@ public class Ventana extends JFrame{
             selectorPlato.addItem(nombre);
         }
     }
-
+        // Saber cual selecciono
     public String obtenerMeseroSeleccionado() {
         return (String) meseroBtn.getSelectedItem();
     }
@@ -269,7 +269,7 @@ public class Ventana extends JFrame{
     public void alReiniciarMesa(ActionListener listener) {
         reiniciarMesa.addActionListener(listener);
     }
-
+        //añade el plato a la cuenta
     public void alAgregarPlato(ActionListener listener) { //este es el boton "+"
         agregarPlato.addActionListener(listener);
     }

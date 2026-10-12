@@ -1,35 +1,19 @@
-
-import controlador.PlatoControlador;
-import modelo.entidades.Plato;
+import controlador.RestauranteControlador;
 import vista.Ventana;
-import java.util.ArrayList;
 
 public class Main {
-    public static void main(String[] args) {        
-       
-        Ventana miVentana = new Ventana();
+    public static void main(String[] args) {
         
-        PlatoControlador controlador = new PlatoControlador();
-        ArrayList<Plato> platosCargados = controlador.cargarPlatosDesdeJSON();
-        
-        String[] nombresDePlatos = new String[platosCargados.size()];
-        
-        for (int i = 0; i < platosCargados.size(); i++) {
-            
-            nombresDePlatos[i] = platosCargados.get(i).getNombre();
-        }
-        
-        // poner platos en la lista desplegable
-        miVentana.cargarPlatos(nombresDePlatos);
-        
-        // pendiente de implementar en clase controlador 
-        String[] meserosPrueba = {"Nicolás", "Ana", "Carlos"};
-        miVentana.cargarMeseros(meserosPrueba); 
-        miVentana.cargarMesas(5);              
-
-        //llamada a ventana
+        // Inicializar la interfaz gráfica 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
+                
+                Ventana miVentana = new Ventana();          
+               
+                RestauranteControlador controladorPrincipal = new RestauranteControlador(miVentana);
+                
+                
                 miVentana.setVisible(true);
             }
         });
