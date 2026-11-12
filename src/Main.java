@@ -7,6 +7,8 @@ import vista.Ventana;
 
 public class Main {
     public static void main(String[] args) {
+
+        //PRUEBA DE CONEXION
         System.out.println("Conectando con Neon...");
         
         try {
@@ -19,6 +21,7 @@ public class Main {
             System.err.println("Falló la conexión: " + e.getMessage());
             e.printStackTrace();
         }
+        //FIN DE PRUEBA DE CONEXION xd
 
         // Inicializar la interfaz gráfica 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
