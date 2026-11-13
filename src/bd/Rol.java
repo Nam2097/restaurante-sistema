@@ -22,11 +22,13 @@ public class Rol {
     }
 
     public void agregarPermiso(Permiso permiso) {
-        // TODO: Implementar lógica
+        permisos.add(permiso);
     }
 
-    public boolean tienePermiso(String nombrePermiso) {
-        // TODO: Implementar lógica
+    public boolean tienePermiso(Permiso permiso) {
+        if(permisos.contains(permiso)){
+            return true;
+        }
         return false;
     }
 }

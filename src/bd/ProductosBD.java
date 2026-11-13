@@ -1,22 +1,69 @@
 package bd;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import modelo.entidades.Plato;
 
 public class ProductosBD {
 
     public ArrayList<Plato> cargarProductos() {
-        // TODO: Implementar consulta de productos
-        return new ArrayList<>();
+        ArrayList<Plato> productos = new ArrayList<>();
+        String sql = "SELECT id, nombre, precio FROM productos ORDER BY id";
+
+        try {
+            Connection conn = ConexionBD.obtenerConexion();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+
+                while (rs.next()) {
+                    Plato plato = new Plato(
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getDouble("precio")
+                    );
+                    productos.add(plato);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al cargar productos: " + e.getMessage());
+        }
+
+        return productos;
     }
 
     public boolean guardarProducto(Plato plato) {
-        // TODO: Implementar inserción de producto
-        return false;
+        String sql = "INSERT INTO productos (nombre, precio) VALUES (?, ?)";
+
+        try {
+            Connection conn = ConexionBD.obtenerConexion();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, plato.getNombre());
+                pstmt.setDouble(2, plato.getPrecio());
+
+                return pstmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al guardar producto: " + e.getMessage());
+            return false;
+        }
     }
 
     public boolean eliminarProducto(int id) {
-        // TODO: Implementar eliminación de producto
-        return false;
+        String sql = "DELETE FROM productos WHERE id = ?";
+
+        try {
+            Connection conn = ConexionBD.obtenerConexion();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, id);
+
+                return pstmt.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar producto: " + e.getMessage());
+            return false;
+        }
     }
 }

@@ -2,7 +2,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import controlador.RestauranteControlador;
-import modelo.bd.ConexionBD;
+import bd.ConexionBD;
 import vista.Ventana;
 
 public class Main {

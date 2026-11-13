@@ -31,7 +31,6 @@ public class Usuario implements Comparable<Usuario> {
 
     @Override
     public int compareTo(Usuario otro) {
-        // TODO: Implementar comparación por username o id
-        return 0;
+        return Integer.compare(id, otro.getId()); // = id-otro.id
     }
 }
