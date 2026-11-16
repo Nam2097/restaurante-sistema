@@ -12,6 +12,7 @@ public class RestauranteControlador {
 
     private Ventana ventanaPrincipal;
     private PanelMeseroControlador meseroControlador;
+    private PanelCocinaControlador cocinaControlador;
     private PlatoControlador platoControlador;
 
     // Estructuras compartidas del sistema
@@ -28,7 +29,6 @@ public class RestauranteControlador {
     }
 
     private void inicializarDatosBase() {
-        // Cargar los meseros y mesas estáticos
         String[] meseros = {"Nicolás", "María", "Juan"};
         ventanaPrincipal.cargarMeseros(meseros);
         ventanaPrincipal.cargarMesas(5);
@@ -40,7 +40,6 @@ public class RestauranteControlador {
             nombresPlatos[i] = platosBD.get(i).getNombre();
         }
         
-        // Poblar lista de platos en la vista
         ventanaPrincipal.cargarPlatos(nombresPlatos);        
         
         this.meseroControlador = new PanelMeseroControlador(
@@ -48,6 +47,11 @@ public class RestauranteControlador {
             platosBD, 
             colaCocina, 
             historialFacturas
+        );
+
+        this.cocinaControlador = new PanelCocinaControlador(
+            this.ventanaPrincipal,
+            colaCocina
         );
     }
 }
