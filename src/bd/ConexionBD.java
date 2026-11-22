@@ -50,7 +50,7 @@ public class ConexionBD {
 
         String sqlUsuarios = """
             CREATE TABLE IF NOT EXISTS usuarios (
-                id SERIAL PRIMARY KEY,
+                id INT PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
                 rol_id INT REFERENCES roles(id)
@@ -65,12 +65,8 @@ public class ConexionBD {
             );
             """;
 
-        // Datos semilla iniciales para poder iniciar sesión la primera vez
-        String sqlSeedAdmin = """
-            INSERT INTO roles (id, nombre_rol) VALUES (1, 'ADMIN') ON CONFLICT DO NOTHING;
-            INSERT INTO usuarios (username, password_hash, rol_id)
-            VALUES ('admin', 'admin123', 1) ON CONFLICT (username) DO NOTHING;
-            """;
+        // Datos semilla iniciales para poder iniciar sesión la primera vez, para quitar si funciona sin esto
+        
 
         try (Statement stmt = conexion.createStatement()) {
             stmt.execute(sqlRoles);
@@ -78,7 +74,6 @@ public class ConexionBD {
             stmt.execute(sqlRolPermisos);
             stmt.execute(sqlUsuarios);
             stmt.execute(sqlProductos);
-            stmt.execute(sqlSeedAdmin);
         } catch (SQLException e) {
             System.err.println("Error al inicializar las tablas en la BD: " + e.getMessage());
         }

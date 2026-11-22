@@ -34,21 +34,23 @@ public class ProductosBD {
         return productos;
     }
 
-    public boolean guardarProducto(Plato plato) {
-        String sql = "INSERT INTO productos (nombre, precio) VALUES (?, ?)";
-
+    public int guardarProducto(Plato plato) {
+        String sql = "INSERT INTO productos (nombre, precio) VALUES (?, ?) RETURNING id";
         try {
             Connection conn = ConexionBD.obtenerConexion();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, plato.getNombre());
                 pstmt.setDouble(2, plato.getPrecio());
-
-                return pstmt.executeUpdate() > 0;
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt("id");
+                    }
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al guardar producto: " + e.getMessage());
-            return false;
         }
+        return -1;
     }
 
     public boolean eliminarProducto(int id) {

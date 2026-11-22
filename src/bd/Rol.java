@@ -25,10 +25,12 @@ public class Rol {
         permisos.add(permiso);
     }
 
-    public boolean tienePermiso(Permiso permiso) {
-        if(permisos.contains(permiso)){
+    public boolean tienePermiso(String nombrePermiso) {
+    for (Permiso p : permisos) {
+        if (p.getNombre().equalsIgnoreCase(nombrePermiso)) {
             return true;
         }
-        return false;
     }
+    return false;
+}
 }

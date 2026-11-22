@@ -6,6 +6,7 @@ public class Usuario implements Comparable<Usuario> {
     private String passwordHash;
     private Rol rol;
 
+
     public Usuario(int id, String username, String passwordHash, Rol rol) {
         this.id = id;
         this.username = username;
