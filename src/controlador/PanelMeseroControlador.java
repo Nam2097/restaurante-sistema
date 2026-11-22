@@ -66,6 +66,14 @@ public class PanelMeseroControlador {
                 generarFactura();
             }
         });
+
+        // Evento para revertir la última factura generada (LIFO)
+        vista.alRevertirFactura(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                revertirFactura();
+            }
+        });
     }
 
     private void agregarPlato() {
@@ -139,6 +147,65 @@ public class PanelMeseroControlador {
 
         // 4. Limpiar el panel del mesero para un nuevo pedido
         reiniciarMesa();
+    }
+
+    private void revertirFactura() {
+        if (historialFacturas.estaVacia()) {
+            JOptionPane.showMessageDialog(vista, "No hay facturas recientes para revertir.");
+            return;
+        }
+
+        // 1. Extraer la última factura de la pila (LIFO)
+        Factura ultimaFactura = historialFacturas.pop();
+        ArrayList<Pedido> pedidosFactura = ultimaFactura.getOrden();
+
+        // 2. Filtrar la cola de cocina para quitar los pedidos pendientes de esta factura
+        Cola<Pedido> colaAuxiliar = new Cola<>();
+        int pedidosCanceladosCocina = 0;
+
+        while (!colaCocina.estaVacia()) {
+            Pedido actual = colaCocina.desencolar();
+            if (pedidosFactura != null && pedidosFactura.contains(actual)) {
+                pedidosCanceladosCocina++;
+            } else {
+                colaAuxiliar.encolar(actual);
+            }
+        }
+
+        // 3. Restaurar colaCocina y actualizar visualmente el Panel Cocina
+        vista.limpiarPedidosCocina();
+        while (!colaAuxiliar.estaVacia()) {
+            Pedido restante = colaAuxiliar.desencolar();
+            colaCocina.encolar(restante);
+            vista.agregarPedidoCocina(
+                restante.getPlato().getNombre(),
+                String.valueOf(restante.getNumeroMesa())
+            );
+        }
+
+        // 4. Devolver los platos al Panel Mesero para permitir su edición
+        reiniciarMesa();
+        if (pedidosFactura != null) {
+            for (Pedido pedido : pedidosFactura) {
+                Plato plato = pedido.getPlato();
+                if (plato != null) {
+                    platosOrdenActual.add(plato);
+                    vista.agregarPedidoMesero(
+                        plato.getNombre(),
+                        String.format("%.2f", plato.getPrecio())
+                    );
+                }
+            }
+        }
+        recalcularTotal();
+
+        JOptionPane.showMessageDialog(
+            vista,
+            "Factura de la Mesa " + ultimaFactura.getNumeroMesa()
+                + " ($" + String.format("%.2f", ultimaFactura.getTotalPagado()) + ") revertida.\n"
+                + "Pedidos retirados de cocina: " + pedidosCanceladosCocina
+                + ". Puede modificar la orden o pulsar 'Reiniciar Mesa'."
+        );
     }
 
     private Plato buscarPlatoPorNombre(String nombrePlato) {    
