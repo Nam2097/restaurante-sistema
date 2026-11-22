@@ -15,7 +15,6 @@ public class RestauranteControlador {
     private PanelCocinaControlador cocinaControlador;
     private PlatoControlador platoControlador;
 
-    // Estructuras compartidas del sistema
     private Cola<Pedido> colaCocina;
     private Pila<Factura> historialFacturas;
 
@@ -24,34 +23,37 @@ public class RestauranteControlador {
         this.platoControlador = new PlatoControlador();
         this.colaCocina = new Cola<>();
         this.historialFacturas = new Pila<>();
-        
+
         inicializarDatosBase();
     }
 
     private void inicializarDatosBase() {
+        int cantidadMesas = 5;
         String[] meseros = {"Nicolás", "María", "Juan"};
         ventanaPrincipal.cargarMeseros(meseros);
-        ventanaPrincipal.cargarMesas(5);
-        
+        ventanaPrincipal.cargarMesas(cantidadMesas);
+
         ArrayList<Plato> platosBD = platoControlador.cargarPlatosDesdeJSON();
-        
+
         String[] nombresPlatos = new String[platosBD.size()];
         for (int i = 0; i < platosBD.size(); i++) {
             nombresPlatos[i] = platosBD.get(i).getNombre();
         }
-        
-        ventanaPrincipal.cargarPlatos(nombresPlatos);        
-        
+
+        ventanaPrincipal.cargarPlatos(nombresPlatos);
+
         this.meseroControlador = new PanelMeseroControlador(
-            this.ventanaPrincipal, 
-            platosBD, 
-            colaCocina, 
-            historialFacturas
+            this.ventanaPrincipal,
+            platosBD,
+            colaCocina,
+            historialFacturas,
+            cantidadMesas
         );
 
         this.cocinaControlador = new PanelCocinaControlador(
             this.ventanaPrincipal,
-            colaCocina
+            colaCocina,
+            () -> meseroControlador.refrescarDesplegableMesas()
         );
     }
 }

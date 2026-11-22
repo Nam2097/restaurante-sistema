@@ -9,28 +9,40 @@ import modelo.estructuras.Pila;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JOptionPane;
 
 public class PanelMeseroControlador {
 
     private Ventana vista;
     private ArrayList<Plato> listaPlatosDisponibles;
-    private ArrayList<Plato> platosOrdenActual;
+    private Map<Integer, ArrayList<Plato>> ordenesPorMesa;
     private Cola<Pedido> colaCocina;
     private Pila<Factura> historialFacturas;
+    private int cantidadMesas;
+    private boolean actualizandoVistaMesas;
 
     public PanelMeseroControlador(
-            Ventana vista, 
+            Ventana vista,
             ArrayList<Plato> listaPlatosDisponibles,
             Cola<Pedido> colaCocina,
-            Pila<Factura> historialFacturas) {
+            Pila<Factura> historialFacturas,
+            int cantidadMesas) {
         this.vista = vista;
         this.listaPlatosDisponibles = listaPlatosDisponibles;
-        this.platosOrdenActual = new ArrayList<>();
+        this.ordenesPorMesa = new HashMap<>();
         this.colaCocina = colaCocina;
         this.historialFacturas = historialFacturas;
-        
+        this.cantidadMesas = cantidadMesas;
+        this.actualizandoVistaMesas = false;
+
+        for (int i = 1; i <= cantidadMesas; i++) {
+            ordenesPorMesa.put(i, new ArrayList<>());
+        }
+
         inicializarEventos();
+        refrescarDesplegableMesas();
     }
 
     private void inicializarEventos() {
@@ -48,6 +60,16 @@ public class PanelMeseroControlador {
             public void actionPerformed(ActionEvent e) {
                 int posicionEliminada = Integer.parseInt(e.getActionCommand());
                 quitarPlato(posicionEliminada);
+            }
+        });
+
+        // Evento al cambiar de mesa en el desplegable
+        vista.alSeleccionarMesa(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!actualizandoVistaMesas) {
+                    cargarOrdenDeMesaSeleccionada();
+                }
             }
         });
 
@@ -76,56 +98,81 @@ public class PanelMeseroControlador {
         });
     }
 
+    private int obtenerNumeroMesaActual() {
+        int indice = vista.obtenerIndiceMesaSeleccionada();
+        return (indice >= 0) ? indice + 1 : 1;
+    }
+
+    private ArrayList<Plato> obtenerOrdenMesaActual() {
+        return ordenesPorMesa.get(obtenerNumeroMesaActual());
+    }
+
+    private void cargarOrdenDeMesaSeleccionada() {
+        ArrayList<Plato> ordenActual = obtenerOrdenMesaActual();
+        vista.limpiarPedidosMesero();
+
+        if (ordenActual != null) {
+            for (Plato plato : ordenActual) {
+                vista.agregarPedidoMesero(plato.getNombre(), String.format("%.2f", plato.getPrecio()));
+            }
+        }
+        recalcularTotal();
+    }
+
     private void agregarPlato() {
-        String nombreSeleccionado = vista.obtenerPlatoSeleccionado();        
-        
+        String nombreSeleccionado = vista.obtenerPlatoSeleccionado();
+
         if (nombreSeleccionado == null || nombreSeleccionado.equals("Escoja el plato")) {
             return;
         }
 
         Plato platoObj = buscarPlatoPorNombre(nombreSeleccionado);
         if (platoObj != null) {
-            platosOrdenActual.add(platoObj);
+            obtenerOrdenMesaActual().add(platoObj);
             vista.agregarPedidoMesero(platoObj.getNombre(), String.format("%.2f", platoObj.getPrecio()));
             recalcularTotal();
+            refrescarDesplegableMesas();
         }
     }
 
     private void quitarPlato(int posicion) {
-        if (posicion >= 0 && posicion < platosOrdenActual.size()) {
-            platosOrdenActual.remove(posicion);
+        ArrayList<Plato> ordenActual = obtenerOrdenMesaActual();
+        if (posicion >= 0 && posicion < ordenActual.size()) {
+            ordenActual.remove(posicion);
             recalcularTotal();
+            refrescarDesplegableMesas();
         }
     }
 
     private void recalcularTotal() {
-        double total = 0.0;        
-        for (Plato plato : platosOrdenActual) {
+        double total = 0.0;
+        for (Plato plato : obtenerOrdenMesaActual()) {
             total += plato.getPrecio();
-        }       
+        }
         vista.actualizarTotal(String.format("%.2f", total));
     }
 
     private void reiniciarMesa() {
-        platosOrdenActual.clear();       
-        vista.limpiarPedidosMesero();        
+        obtenerOrdenMesaActual().clear();
+        vista.limpiarPedidosMesero();
         vista.actualizarTotal("0.00");
+        refrescarDesplegableMesas();
     }
 
     private void generarFactura() {
-        if (platosOrdenActual.isEmpty()) {
+        ArrayList<Plato> ordenActual = obtenerOrdenMesaActual();
+        if (ordenActual.isEmpty()) {
             JOptionPane.showMessageDialog(vista, "Debe agregar al menos un plato para generar la factura.");
             return;
         }
 
-        String mesaTexto = vista.obtenerMesaSeleccionada();
-        int numeroMesa = Integer.parseInt(mesaTexto);
+        int numeroMesa = obtenerNumeroMesaActual();
+        String mesaTexto = String.valueOf(numeroMesa);
 
         ArrayList<Pedido> ordenFactura = new ArrayList<>();
         double totalFactura = 0.0;
 
-        for (Plato plato : platosOrdenActual) {
-            // 1. Crear entidad Pedido
+        for (Plato plato : ordenActual) {
             Pedido nuevoPedido = new Pedido();
             nuevoPedido.setNumeroMesa(numeroMesa);
             nuevoPedido.setPlato(plato);
@@ -133,19 +180,16 @@ public class PanelMeseroControlador {
             ordenFactura.add(nuevoPedido);
             totalFactura += plato.getPrecio();
 
-            // 2. Encolar en estructura Cola para cocina y mostrar en el Panel Cocina
             colaCocina.encolar(nuevoPedido);
             vista.agregarPedidoCocina(plato.getNombre(), mesaTexto);
         }
 
-        // 3. Crear y apilar la Factura en el historial
         Factura nuevaFactura = new Factura();
         nuevaFactura.setNumeroMesa(numeroMesa);
         nuevaFactura.setTotalPagado(totalFactura);
         nuevaFactura.setOrden(ordenFactura);
         historialFacturas.push(nuevaFactura);
 
-        // 4. Limpiar el panel del mesero para un nuevo pedido
         reiniciarMesa();
     }
 
@@ -155,11 +199,9 @@ public class PanelMeseroControlador {
             return;
         }
 
-        // 1. Extraer la última factura de la pila (LIFO)
         Factura ultimaFactura = historialFacturas.pop();
         ArrayList<Pedido> pedidosFactura = ultimaFactura.getOrden();
 
-        // 2. Filtrar la cola de cocina para quitar los pedidos pendientes de esta factura
         Cola<Pedido> colaAuxiliar = new Cola<>();
         int pedidosCanceladosCocina = 0;
 
@@ -172,7 +214,6 @@ public class PanelMeseroControlador {
             }
         }
 
-        // 3. Restaurar colaCocina y actualizar visualmente el Panel Cocina
         vista.limpiarPedidosCocina();
         while (!colaAuxiliar.estaVacia()) {
             Pedido restante = colaAuxiliar.desencolar();
@@ -183,37 +224,87 @@ public class PanelMeseroControlador {
             );
         }
 
-        // 4. Devolver los platos al Panel Mesero para permitir su edición
-        reiniciarMesa();
+        int mesaRevertida = ultimaFactura.getNumeroMesa();
+        ArrayList<Plato> ordenMesaRevertida = ordenesPorMesa.get(mesaRevertida);
+        ordenMesaRevertida.clear();
+
         if (pedidosFactura != null) {
             for (Pedido pedido : pedidosFactura) {
-                Plato plato = pedido.getPlato();
-                if (plato != null) {
-                    platosOrdenActual.add(plato);
-                    vista.agregarPedidoMesero(
-                        plato.getNombre(),
-                        String.format("%.2f", plato.getPrecio())
-                    );
+                if (pedido.getPlato() != null) {
+                    ordenMesaRevertida.add(pedido.getPlato());
                 }
             }
         }
-        recalcularTotal();
+
+        actualizandoVistaMesas = true;
+        try {
+            vista.seleccionarIndiceMesa(mesaRevertida - 1);
+        } finally {
+            actualizandoVistaMesas = false;
+        }
+
+        cargarOrdenDeMesaSeleccionada();
+        refrescarDesplegableMesas();
 
         JOptionPane.showMessageDialog(
             vista,
-            "Factura de la Mesa " + ultimaFactura.getNumeroMesa()
+            "Factura de la Mesa " + mesaRevertida
                 + " ($" + String.format("%.2f", ultimaFactura.getTotalPagado()) + ") revertida.\n"
                 + "Pedidos retirados de cocina: " + pedidosCanceladosCocina
                 + ". Puede modificar la orden o pulsar 'Reiniciar Mesa'."
         );
     }
 
-    private Plato buscarPlatoPorNombre(String nombrePlato) {    
-        for (Plato plato : listaPlatosDisponibles) {
-            if (plato.getNombre().equalsIgnoreCase(nombrePlato)) {
-                return plato; 
+    public void refrescarDesplegableMesas() {
+        String[] opciones = new String[cantidadMesas];
+
+        for (int i = 1; i <= cantidadMesas; i++) {
+            int platosSinFacturar = ordenesPorMesa.get(i).size();
+            int platosEnCocina = contarPedidosPendientesEnCocina(i);
+            int totalPlatos = platosSinFacturar + platosEnCocina;
+
+            if (totalPlatos == 0) {
+                opciones[i - 1] = "Mesa " + i + " (Libre)";
+            } else if (totalPlatos == 1) {
+                opciones[i - 1] = "Mesa " + i + " (Ocupada - 1 plato)";
+            } else {
+                opciones[i - 1] = "Mesa " + i + " (Ocupada - " + totalPlatos + " platos)";
             }
         }
-        return null; 
+
+        actualizandoVistaMesas = true;
+        try {
+            vista.cargarMesas(opciones);
+        } finally {
+            actualizandoVistaMesas = false;
+        }
+    }
+
+    private int contarPedidosPendientesEnCocina(int numeroMesa) {
+        int contador = 0;
+        Cola<Pedido> colaAuxiliar = new Cola<>();
+
+        while (!colaCocina.estaVacia()) {
+            Pedido actual = colaCocina.desencolar();
+            if (actual.getNumeroMesa() == numeroMesa) {
+                contador++;
+            }
+            colaAuxiliar.encolar(actual);
+        }
+
+        while (!colaAuxiliar.estaVacia()) {
+            colaCocina.encolar(colaAuxiliar.desencolar());
+        }
+
+        return contador;
+    }
+
+    private Plato buscarPlatoPorNombre(String nombrePlato) {
+        for (Plato plato : listaPlatosDisponibles) {
+            if (plato.getNombre().equalsIgnoreCase(nombrePlato)) {
+                return plato;
+            }
+        }
+        return null;
     }
 }

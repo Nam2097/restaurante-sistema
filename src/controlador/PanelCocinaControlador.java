@@ -10,10 +10,12 @@ public class PanelCocinaControlador {
 
     private Ventana vista;
     private Cola<Pedido> colaCocina;
+    private Runnable alActualizarEstadoMesas;
 
-    public PanelCocinaControlador(Ventana vista, Cola<Pedido> colaCocina) {
+    public PanelCocinaControlador(Ventana vista, Cola<Pedido> colaCocina, Runnable alActualizarEstadoMesas) {
         this.vista = vista;
         this.colaCocina = colaCocina;
+        this.alActualizarEstadoMesas = alActualizarEstadoMesas;
 
         inicializarEventos();
     }
@@ -22,7 +24,6 @@ public class PanelCocinaControlador {
         vista.alCompletarPedido(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Ventana envía el comando con formato "nombrePlato;numeroMesa"
                 String comando = e.getActionCommand();
                 int separador = comando.lastIndexOf(";");
 
@@ -40,8 +41,6 @@ public class PanelCocinaControlador {
             return;
         }
 
-        // Si se completa el primer elemento, sale directo por FIFO.
-        // Si el cocinero completa otro de la lista, se mantiene el orden de los demás.
         Cola<Pedido> colaAuxiliar = new Cola<>();
         boolean eliminado = false;
 
@@ -61,6 +60,10 @@ public class PanelCocinaControlador {
 
         while (!colaAuxiliar.estaVacia()) {
             colaCocina.encolar(colaAuxiliar.desencolar());
+        }
+
+        if (eliminado && alActualizarEstadoMesas != null) {
+            alActualizarEstadoMesas.run();
         }
     }
 }
