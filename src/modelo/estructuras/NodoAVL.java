@@ -17,8 +17,16 @@ public class NodoAVL<T> {
         return dato;
     }
 
+    public void setDato(T dato){
+        this.dato=dato;
+    }
+
     public int getAltura() {
         return altura;
+    }
+
+    public void setAltura(int altura){
+        this.altura=altura;
     }
 
     public NodoAVL<T> getIzquierdo() {
@@ -27,5 +35,11 @@ public class NodoAVL<T> {
 
     public NodoAVL<T> getDerecho() {
         return derecho;
+    }
+    public void setIzquierdo(NodoAVL<T> izquierdo){
+        this.izquierdo=izquierdo;
+    }
+    public void setDerecho(NodoAVL<T> derecho){
+        this.derecho=derecho;
     }
 }

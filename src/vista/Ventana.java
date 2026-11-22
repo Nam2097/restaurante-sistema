@@ -158,6 +158,27 @@ public class Ventana extends JFrame{
         }
     }
 
+    public void cargarMesas(String[] opcionesMesas) {
+        int indiceActual = mesaBtn.getSelectedIndex();
+        mesaBtn.removeAllItems();
+        for (String opcion : opcionesMesas) {
+            mesaBtn.addItem(opcion);
+        }
+        if (indiceActual >= 0 && indiceActual < opcionesMesas.length) {
+            mesaBtn.setSelectedIndex(indiceActual);
+        }
+    }
+
+    public int obtenerIndiceMesaSeleccionada() {
+        return mesaBtn.getSelectedIndex();
+    }
+
+    public void seleccionarIndiceMesa(int indice) {
+        if (indice >= 0 && indice < mesaBtn.getItemCount()) {
+            mesaBtn.setSelectedIndex(indice);
+        }
+    }
+
     public void cargarPlatos(String[] nombres) { //Poner las opciones de platos
         selectorPlato.removeAllItems();
         selectorPlato.addItem("Escoja el plato");
