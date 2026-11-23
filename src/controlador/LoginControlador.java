@@ -314,7 +314,7 @@ public class LoginControlador {
                 }
             }
         }
-        usuariosBD.guardarUsuario(new Usuario(id, usuario, password, rolSeleccionado));
+        usuariosBD.guardarUsuario(new Usuario(id, usuario, generarHash(password), rolSeleccionado));
         
         System.out.println("Usuario agregado con éxito!");
     }
