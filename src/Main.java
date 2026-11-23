@@ -1,6 +1,7 @@
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import controlador.LoginControlador;
 import controlador.RestauranteControlador;
 import bd.ConexionBD;
 import vista.Ventana;
@@ -22,6 +23,11 @@ public class Main {
             e.printStackTrace();
         }
         //FIN DE PRUEBA DE CONEXION xd
+
+        //LOGIN
+        LoginControlador login = new LoginControlador();
+        login.iniciar();
+
 
         // Inicializar la interfaz gráfica 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
